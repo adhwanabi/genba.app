@@ -244,25 +244,18 @@
                 <h2 class="h5 mb-0"><i class="fas fa-clipboard-check me-2"></i>Form Temuan GENBA</h2>
             </div>
             <div class="card-body">
-                <form id="genbaForm">
+                <form id="genbaForm" action="{{ route('form.submit') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
                     <!-- Area Selection -->
                     <div class="mb-4">
-                        <label for="areaSelect" class="form-label">PILIH AREA</label>
-                        <select class="form-select" id="areaSelect" required>
-                            <option value="" selected disabled>-- Pilih Cluster --</option>
-                            <option value="cluster1">Cluster 1 - Injection Molding</option>
-                            <option value="cluster2">Cluster 2 - Assembly Line</option>
-                            <option value="cluster3">Cluster 3 - Quality Control</option>
-                            <option value="cluster4">Cluster 4 - Warehouse</option>
-                            <option value="cluster5">Cluster 5 - Maintenance</option>
-                            <option value="other">Lainnya</option>
-                        </select>
+                        <label for="area" class="form-label">PILIH AREA</label>
+                        <input type="text" name="area" id="area" class="form-control" placeholder="Contoh: Cluster 1 - Mesin 801" required>
                     </div>
 
                     <!-- Detail Lokasi -->
                     <div class="mb-4">
-                        <label for="detailLocation" class="form-label">DETAIL LOKASI</label>
-                        <input type="text" class="form-control" id="detailLocation" placeholder="Contoh: Mesin Injeksi #5, Line Assembly B" required>
+                        <label for="detail_area" class="form-label">DETAIL LOKASI</label>
+                        <input type="text" name="detail_area" class="form-control" id="detail_area" placeholder="Contoh: Mesin Injeksi #5, Line Assembly B" required>
                         <div class="form-text">Sebutkan lokasi spesifik dengan jelas</div>
                     </div>
 
@@ -292,13 +285,13 @@
                                 <i class="fas fa-images me-2"></i>Dari Galeri
                             </button>
                         </div>
-                        <input type="file" id="photoInput" accept="image/*" class="d-none" capture="environment">
+                        <input type="file" id="photoInput" name="img_path" accept="image/*" class="d-none" capture="environment">
                     </div>
 
                     <!-- Kategori Temuan -->
                     <div class="mb-4">
                         <label for="findingCategory" class="form-label">KATEGORI TEMUAN</label>
-                        <select class="form-select" id="findingCategory" required>
+                        <select class="form-select" id="findingCategory" name="kategori_temuan" required>
                             <option value="" selected disabled>-- Pilih Kategori --</option>
                             <option value="safety">Keselamatan (Safety)</option>
                             <option value="quality">Kualitas (Quality)</option>
@@ -312,28 +305,28 @@
                     <!-- Deskripsi Temuan -->
                     <div class="mb-4">
                         <label for="findingDescription" class="form-label">DESKRIPSI TEMUAN</label>
-                        <textarea class="form-control" id="findingDescription" rows="3" placeholder="Deskripsi lengkap temuan..." required></textarea>
+                        <textarea class="form-control" id="findingDescription" name="deskripsi" rows="3" placeholder="Deskripsi lengkap temuan..." required></textarea>
                         <div class="form-text">Jelaskan secara rinci apa yang ditemukan</div>
                     </div>
 
                     <!-- Potensi Bahaya -->
                     <div class="mb-4">
                         <label for="hazardPotential" class="form-label">POTENSI BAHAYA</label>
-                        <textarea class="form-control" id="hazardPotential" rows="2" placeholder="Jelaskan potensi bahaya yang mungkin terjadi..." required></textarea>
+                        <textarea class="form-control" id="hazardPotential" name="potensi_bahaya" rows="2" placeholder="Jelaskan potensi bahaya yang mungkin terjadi..." required></textarea>
                         <div class="form-text">Identifikasi risiko yang mungkin timbul</div>
                     </div>
 
                     <!-- Rekomendasi Perbaikan -->
                     <div class="mb-4">
                         <label for="improvementRecommendation" class="form-label">REKOMENDASI PERBAIKAN</label>
-                        <textarea class="form-control" id="improvementRecommendation" rows="2" placeholder="Masukkan rekomendasi perbaikan jika ada..."></textarea>
+                        <textarea class="form-control" id="improvementRecommendation" name="masukan" rows="2" placeholder="Masukkan rekomendasi perbaikan jika ada..." required></textarea>
                         <div class="form-text">Opsional - saran untuk perbaikan</div>
                     </div>
 
                     <!-- Prioritas -->
                     <div class="mb-4">
                         <label for="priorityLevel" class="form-label">TINGKAT PRIORITAS</label>
-                        <select class="form-select" id="priorityLevel">
+                        <select class="form-select" id="priorityLevel" name="tingkat_prioritas">
                             <option value="low">Rendah</option>
                             <option value="medium" selected>Sedang</option>
                             <option value="high">Tinggi</option>
@@ -429,49 +422,43 @@
             });
             
             // Form Submission
-            document.getElementById('genbaForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Show loading spinner
-                spinnerContainer.style.display = 'flex';
-                
-                // Validate form
-                if (!photoInput.files[0]) {
-                    alert('Harap upload foto temuan!');
-                    spinnerContainer.style.display = 'none';
-                    return;
-                }
-                
-                // Simulate API call with timeout
+            // Tampilkan notifikasi dari session (success/error) jika ada
+            @if(session('success'))
                 setTimeout(function() {
-                    // Hide spinner
-                    spinnerContainer.style.display = 'none';
-                    
-                    // Show success message
                     const successHtml = `
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="fas fa-check-circle me-2"></i>
-                            <strong>Temuan berhasil disubmit!</strong> Tim terkait akan segera menindaklanjuti.
+                            <strong>{{ session('success') }}</strong>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     `;
-                    
-                    // Insert alert before form
-                    const form = document.getElementById('genbaForm');
-                    form.insertAdjacentHTML('beforebegin', successHtml);
-                    
-                    // Reset form
-                    form.reset();
-                    photoInput.value = '';
-                    photoPreview.src = '';
-                    photoPreview.classList.add('d-none');
-                    photoPlaceholder.classList.remove('d-none');
-                    photoActions.style.display = 'none';
-                    
-                    // Scroll to top to show success message
+                    document.getElementById('genbaForm').insertAdjacentHTML('beforebegin', successHtml);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
-                    
-                }, 2000); // Simulate 2 second delay for API call
+                }, 300);
+            @endif
+
+            @if($errors->any())
+                setTimeout(function() {
+                    const errorHtml = `
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Terjadi kesalahan:</strong>
+                            <ul class="mb-0">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    document.getElementById('genbaForm').insertAdjacentHTML('beforebegin', errorHtml);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 300);
+            @endif
+
+            // Spinner hanya untuk submit form (opsional, jika ingin tetap ada)
+            document.getElementById('genbaForm').addEventListener('submit', function() {
+                spinnerContainer.style.display = 'flex';
             });
             
             // Add animation to form elements on scroll

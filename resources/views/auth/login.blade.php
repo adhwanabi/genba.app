@@ -206,7 +206,7 @@
                         </div>
                         @endif
 
-                        <form method="POST" action="{{ route('login') }}">
+                        <form method="POST" action="{{ route('login.post') }}">
                             @csrf
                             <div class="mb-4">
                                 <label for="npk" class="form-label">Employee ID</label>
