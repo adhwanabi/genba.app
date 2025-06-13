@@ -10,6 +10,10 @@
     <!-- Add jsPDF library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Add jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Add SweetAlert2 library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -548,13 +552,11 @@
         </header>
 
         <div class="report-actions">
-            <button class="btn btn-primary" id="downloadPdf">
-                <i class="fas fa-download"></i> Download PDF
+            <button class="btn btn-primary" id="downloadPdf" onclick="exportData()">
+                <i class="fas fa-download"></i> Download CSV
             </button>
-            <button class="btn btn-outline">
-                <i class="fas fa-share-alt"></i> Share Report
-            </button>
-            <button onclick="window.location.href='{{ route('form') }}'" class="btn btn-primary" style="text-decoration: none;">
+            <button onclick="window.location.href='{{ route('form') }}'" class="btn btn-primary"
+                style="text-decoration: none;">
                 <i class="fas fa-plus"></i> Tambah Data
             </button>
 
@@ -578,6 +580,7 @@
                         <th>Description</th>
                         <th>Risk Level</th>
                         <th>PIC</th>
+                        <th>DD</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -628,6 +631,11 @@
                             </td>
                             <td>
                                 <div style="font-weight: 500;">{{ $item->pic }}</div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 500;">
+                                    {{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y') }}
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -786,81 +794,37 @@
             tableWrapper.appendChild(table);
         }
 
-        // PDF Download Functionality
-        document.getElementById('downloadPdf').addEventListener('click', function() {
-            // Show loading state
-            const btn = this;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-            btn.disabled = true;
-
-            // Close modal if open
-            if (modal.classList.contains('show')) {
-                modal.classList.remove('show');
-                document.body.style.overflow = 'auto';
-            }
-
-            // Use html2canvas and jsPDF to generate PDF
-            const {
-                jsPDF
-            } = window.jspdf;
-
-            // Get the report content element
-            const element = document.getElementById('report-content');
-
-            // Options for html2canvas
-            const options = {
-                scale: 2, // Higher scale for better quality
-                useCORS: true, // To handle external images if any
-                allowTaint: true, // To handle external images if any
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: document.documentElement.scrollWidth,
-                windowHeight: document.documentElement.scrollHeight
-            };
-
-            // Generate the PDF
-            html2canvas(element, options).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm'
-                });
-
-                // Calculate the PDF dimensions
-                const imgWidth = pdf.internal.pageSize.getWidth() - 20; // 10mm margin on each side
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                let heightLeft = imgHeight;
-                let position = 10; // Start 10mm from top
-
-                // Add first page
-                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                heightLeft -= pdf.internal.pageSize.getHeight() - 30; // 20mm margin on bottom
-
-                // Add additional pages if content is too long
-                while (heightLeft >= 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                    heightLeft -= pdf.internal.pageSize.getHeight() - 20;
+        // CSV Download Functionality
+        function exportData() {
+            // Kirim data via AJAX
+            $.ajax({
+                url: '{{ route('export') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                xhrFields: {
+                    responseType: 'blob'
+                },
+                success: function(response) {
+                    // Buat link untuk download file
+                    const blob = new Blob([response]);
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    const now = new Date();
+                    const yyyy = now.getFullYear();
+                    const mm = String(now.getMonth() + 1).padStart(2, '0');
+                    const dd = String(now.getDate()).padStart(2, '0');
+                    const dateStr = `${yyyy}${mm}${dd}`;
+                    link.download = `export_data_${dateStr}.xlsx`;
+                    link.click();
+                },
+                error: function(xhr) {
+                    Swal.fire('Error!', 'Gagal mengekspor data', 'error');
+                    console.error(xhr.responseText);
                 }
-
-                // Save the PDF
-                pdf.save('Safety_Inspection_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
-
-                // Restore button state
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }).catch(error => {
-                console.error('Error generating PDF:', error);
-                alert('Error generating PDF. Please try again.');
-
-                // Restore button state
-                btn.innerHTML = originalText;
-                btn.disabled = false;
             });
-        });
+        }
         // Search functionality
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -921,6 +885,12 @@
             });
         }
     </script>
+    <script>
+    // Auto refresh page every 5 minutes (300000 ms)
+    setTimeout(function() {
+        window.location.reload();
+    }, 300000);
+</script>
 </body>
 
 </html>

@@ -19,7 +19,8 @@ class FormAnswerModel extends Model
         'deskripsi',
         'potensi_bahaya',
         'masukan',
-        'tingkat_prioritas'
+        'tingkat_prioritas',
+        'pic'
     ];
     public $timestamps = true; // Enable timestamps if needed
     protected $casts = [
