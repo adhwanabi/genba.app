@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class GenbaController extends Controller
 {
@@ -14,6 +15,41 @@ class GenbaController extends Controller
     {
         $data = \App\Models\FormAnswerModel::all();
         return view('ori_app.bod', compact('data'));
+    }
+    public function update(Request $request)
+    {
+        try {
+            // Validate the request data
+            $validated = $request->validate([
+                'id' => 'required|string|max:255',
+                'area' => 'sometimes|required|string|max:255',
+                'detail_area' => 'sometimes|required|string|max:255',
+                'potensi_bahaya' => 'sometimes|required|string|max:255',
+                'deskripsi' => 'sometimes|required|string',
+                'masukan' => 'sometimes|required|string|max:255',
+                'tingkat_prioritas' => 'sometimes|required|in:critical,high,medium,low',
+                'pic' => 'sometimes|required|string|max:255',
+                'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
+            ]);
+
+            // Find the record to update
+            $formAnswer = \App\Models\FormAnswerModel::findOrFail($validated['id']);
+
+            // Handle image upload if present
+            if ($request->hasFile('image')) {
+                if ($formAnswer->img_path && Storage::disk('public')->exists($formAnswer->img_path)) {
+                    Storage::disk('public')->delete($formAnswer->img_path);
+                }
+                $imagePath = $request->file('image')->store('inspection_images', 'public');
+                $validated['img_path'] = $imagePath;
+            }
+
+            $formAnswer->update($validated);
+
+            return redirect()->back()->with('success', 'Inspection updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error updating inspection: ' . $e->getMessage()]);
+        }
     }
     public function form(Request $request)
     {
