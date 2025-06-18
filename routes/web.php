@@ -21,5 +21,7 @@ Route::middleware(['auth'])->group(function () {
         abort(403, 'Unauthorized');
     })->name('bod');
 
+    Route::post('/form-answer', [GenbaController::class, 'update'])->name('form-answer.update');
+
     Route::post('/export', [ExportReportController::class, 'export'])->name('export');
 });
