@@ -21,7 +21,19 @@ Route::middleware(['auth'])->group(function () {
         abort(403, 'Unauthorized');
     })->name('bod');
 
+
+    // AJAX PAGINATION
+    Route::get('/bod/repair/data',[GenbaController::class, 'bodRepairData'])->name('bod.repair.data');
+    Route::get('/bod/data', [GenbaController::class, 'bodData'])->name('bod.data');
+
+    // FORM SUBMIT DELETE
     Route::post('/form-answer', [GenbaController::class, 'update'])->name('form-answer.update');
+    Route::get('/form/repair/{id}', [GenbaController::class, 'repair'])->name('form.repair');
+    Route::post('/form/repair/{id}', [GenbaController::class, 'repairUpdate'])->name('form.repair.update');
+    Route::post('/form/repair/delete/{id}', [GenbaController::class, 'deleteRepair'])->name('bod.repair.delete');
+    Route::post('/form-answer/delete/{id}', [GenbaController::class, 'delete'])->name('form-answer.delete');
 
     Route::post('/export', [ExportReportController::class, 'export'])->name('export');
 });
+
+Route::get('/dashboard',[GenbaController::class, 'dashboard'])->middleware(['auth'])->name('dashboard');

@@ -13,7 +13,12 @@ class AuthController extends Controller
         $credentials = $request->only('npk', 'password');
 
         if (auth()->attempt($credentials)) {
-            return redirect()->intended('form');
+            $user = auth()->user();
+            if (strtolower($user->name) === 'ehs') {
+                return redirect()->intended('dashboard');
+            } else {
+                return redirect()->intended('form');
+            }
         }
 
         return back()->withErrors([

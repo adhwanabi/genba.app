@@ -20,7 +20,10 @@ class FormAnswerModel extends Model
         'potensi_bahaya',
         'masukan',
         'tingkat_prioritas',
-        'pic'
+        'pic',
+        'img_path_repair',
+        'deskripsi_repair',
+        'status'
     ];
     public $timestamps = true; // Enable timestamps if needed
     protected $casts = [
@@ -32,11 +35,11 @@ class FormAnswerModel extends Model
         'deskripsi' => 'string',
         'potensi_bahaya' => 'string',
         'masukan' => 'string',
-        'tingkat_prioritas' => 'string'
-    ];
-    protected $hidden = [
-        'created_at',
-        'updated_at'
+        'tingkat_prioritas' => 'string',
+        'pic' => 'string',
+        'img_path_repair' => 'string',
+        'deskripsi_repair' => 'string',
+        'status' => 'string'
     ];
     public function user()
     {

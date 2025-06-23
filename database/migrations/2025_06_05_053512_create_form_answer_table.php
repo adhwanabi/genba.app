@@ -21,6 +21,10 @@ return new class extends Migration
             $table->string('potensi_bahaya');
             $table->string('masukan');
             $table->string('tingkat_prioritas');
+            $table->string('pic');
+            $table->string('img_path_repair')->nullable();
+            $table->string('deskripsi_repair')->nullable();
+            $table->string('status')->default('on going');
             $table->timestamps();
         });
     }
