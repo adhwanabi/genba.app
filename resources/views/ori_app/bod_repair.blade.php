@@ -333,7 +333,7 @@
     <div class="container-fluid report-container my-4" id="report-content">
         <header class="report-header d-flex flex-column flex-md-row justify-content-between align-items-center">
             <img src="{{ asset('img/company-logo.png') }}" alt="Company Logo" style="height: 80px;" class="order-md-1">
-            <h1 class="report-title order-md-2 text-center my-3 my-md-0">Safety Inspection Report</h1>
+            <h1 class="report-title order-md-2 text-center my-3 my-md-0">Repair Safety Inspection Report</h1>
             <div class="date-time text-center text-md-end order-md-3">
                 <div class="current-time" id="currentTime"></div>
                 <div class="current-date" id="currentDate"></div>
@@ -342,16 +342,12 @@
 
         <div class="px-4 pt-3 pb-2">
             <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-center mb-4 gap-3">
-
                 <div class="d-flex gap-2 order-md-1 w-100 w-md-auto">
                     <button class="btn btn-primary shadow-sm" id="downloadPdf" onclick="exportData()">
                         <i class="fas fa-download me-2"></i> Download CSV
                     </button>
                     <a href="{{ route('form') }}" class="btn btn-primary shadow-sm">
                         <i class="fas fa-plus me-2"></i> Tambah Data
-                    </a>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-primary shadow-sm">
-                        <i class="fas fa-arrow-left me-2"></i> Kembali
                     </a>
                 </div>
 
@@ -363,6 +359,9 @@
                             class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     </div>
                 </div>
+                <a href="javascript:history.back()" class="btn btn-outline-primary shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Kembali
+                </a>
             </div>
         </div>
 
@@ -372,14 +371,12 @@
                 <table class="table table-hover align-middle mb-0"
                     style="border-radius: 16px; overflow: hidden; font-size: 1.15rem; table-layout: fixed; width: 100%;">
                     <colgroup>
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
+                        <col style="width: 19%;">
+                        <col style="width: 20%;">
+                        <col style="width: 17%;">
+                        <col style="width: 14%;">
+                        <col style="width: 15%;">
+                        <col style="width: 15%;">
                     </colgroup>
                     <thead>
                         <tr
@@ -387,9 +384,7 @@
                             <th class="rounded-start" style="font-size:1.1rem; letter-spacing:0.5px;">Area</th>
                             <th class="text-center" style="font-size:1.1rem;">Photo</th>
                             <th style="font-size:1.1rem;">Description</th>
-                            <th style="font-size:1.1rem;">Photo Repair</th>
-                            <th style="font-size:1.1rem;">Description Repair</th>
-                            <th style="font-size:1.1rem;">PIC</th>
+                            <th style="font-size:1.1rem;">Risk Level</th>
                             <th style="font-size:1.1rem;">DD</th>
                             <th class="rounded-end" style="font-size:1.1rem;">ACTION</th>
                         </tr>
@@ -441,7 +436,7 @@
                                 <div class="col-md-6">
                                     <div class="p-3 rounded-3 shadow-sm h-100" style="background: var(--light);">
                                         <div class="fw-bold small text-muted mb-1">
-                                            <i class="fas fa-bolt me-1 text-danger"></i> Photo Repair
+                                            <i class="fas fa-bolt me-1 text-danger"></i> Risk Level
                                         </div>
                                         <div id="modalRisk"></div>
                                     </div>
@@ -454,12 +449,6 @@
                                         <div id="modalPic"></div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="mt-4 text-end">
-                                <a href="#" id="btnFormPerbaikan" class="btn btn-primary shadow-sm"
-                                    style="border-radius: 10px;">
-                                    <i class="fas fa-tools me-2"></i> Form Perbaikan
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -724,7 +713,7 @@
             // Function to load data via AJAX
             function loadData(page) {
                 $.ajax({
-                    url: '{{ route('bod.data') }}',
+                    url: '{{ route('bod.repair.data') }}',
                     type: 'GET',
                     data: {
                         page: page
@@ -734,6 +723,7 @@
                     },
                     success: function(response) {
                         // Update table body
+                        console.log('data respone', response.data);
                         updateTableBody(response.data);
 
                         // Update pagination links
@@ -764,7 +754,7 @@
 
                 data.forEach(item => {
                     let riskBadge = '';
-                    const risk = (item.tingkat_prioritas ?? '').toLowerCase();
+                    const risk = item.tingkat_prioritas.toLowerCase();
 
                     if (risk === 'critical') {
                         riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
@@ -792,21 +782,20 @@
                 <tr class="inspection-row" style="transition: box-shadow 0.2s; font-size:1.08rem;">
                     <td style="word-break:break-word;">
                         <div class="fw-bold" style="font-size:1.15rem; color:var(--primary);">
-                            <i class="fas fa-map-marker-alt me-1 text-success"></i> ${item.area ?? '-'}
+                            <i class="fas fa-map-marker-alt me-1 text-success"></i> ${item.area}
                         </div>
-                        ${(item.detail_area ?? '') ? `
-                            <div class="text-muted small mt-1 ps-4" style="font-size:1.05rem;">
-                                <i class="fas fa-location-arrow me-1"></i> ${item.detail_area}
-                            </div>` : ''}
+                        ${item.detail_area ? `
+                                                    <div class="text-muted small mt-1 ps-4" style="font-size:1.05rem;">
+                                                        <i class="fas fa-location-arrow me-1"></i> ${item.detail_area}
+                                                    </div>` : ''}
                     </td>
                     <td class="photo-cell text-center" style="word-break:break-word;">
                         <div class="position-relative d-inline-block">
-                            <img src="/storage/${item.img_path ?? 'no_img.jpeg'}" alt="Area photo"
-                                onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image';"
+                            <img src="/storage/${item.img_path_repair}" alt="Area photo"
                                 data-bs-toggle="modal" data-bs-target="#imageModal"
-                                data-area="${item.area ?? '-'}${(item.detail_area ?? '') ? ' - ' + item.detail_area : ''}"
-                                data-description="${item.deskripsi ?? '-'}"
-                                data-risk="${item.tingkat_prioritas ?? '-'}" data-pic="${item.pic ?? '-'}"
+                                data-area="${item.area}${item.detail_area ? ' - ' + item.detail_area : ''}"
+                                data-description="${item.deskripsi_repair}"
+                                data-risk="${item.tingkat_prioritas}" data-pic="${item.pic}"
                                 class="shadow-sm border border-2 border-light"
                                 style="max-width: 180px; max-height: 120px; border-radius: 12px; background: #fff; object-fit: cover; object-position: center;">
                             <span
@@ -819,49 +808,20 @@
                     <td style="word-break:break-word;">
                         <div class="fw-medium mb-1" style="color:var(--secondary); font-size:0.95rem;">
                             <i class="fas fa-exclamation-circle me-1"></i>
-                            ${(item.potensi_bahaya ?? '') ? (item.potensi_bahaya.length > 30 ? item.potensi_bahaya.substring(0, 30) + '...' : item.potensi_bahaya) : 'Detail'}
+                            ${item.potensi_bahaya ? item.potensi_bahaya.substring(0, 30) + (item.potensi_bahaya.length > 30 ? '...' : '') : 'Detail'}
                         </div>
                         <div class="text-muted small" style="font-size:0.92rem;">
-                            ${(item.deskripsi ?? '') ? (item.deskripsi.length > 30 ? item.deskripsi.substring(0, 30) + '...' : item.deskripsi) : '-'}
-                        </div>
-                        ${(item.masukan ?? '') ? `
-                            <div class="text-success small mt-1" style="font-size:0.9rem;">
-                                <i class="fas fa-lightbulb me-1"></i>
-                                ${(item.masukan.length > 30 ? item.masukan.substring(0, 30) + '...' : item.masukan)}
-                            </div>` : ''}
-                    </td>
-                    <td class="photo-cell text-center" style="word-break:break-word;">
-                        <div class="position-relative d-inline-block">
-                            <img src="/storage/${item.img_path_repair ?? 'no_img.jpeg'}" 
-                                onerror="this.onerror=null;this.src='https://via.placeholder.com/180x120?text=No+Image';"
-                                alt="Area photo"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#imageModal"
-                                data-area="${item.area ?? '-'}${(item.detail_area ?? '') ? ' - ' + item.detail_area : ''}"
-                                data-description="${item.deskripsi_repair ?? '-'}"
-                                data-risk="${item.tingkat_prioritas ?? '-'}" 
-                                data-pic="${item.pic ?? '-'}"
-                                class="shadow-sm border border-2 border-light"
-                                style="max-width: 180px; max-height: 120px; border-radius: 12px; background: #fff; object-fit: cover; object-position: center;">
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary shadow-sm"
-                                style="font-size:0.8rem;">
-                                <i class="fas fa-search"></i>
-                            </span>
+                            ${item.deskripsi_repair ? item.deskripsi_repair.substring(0, 30) + (item.deskripsi_repair.length > 30 ? '...' : '') : ''}
                         </div>
                     </td>
                     <td style="word-break:break-word;">
-                        <div class="text-muted small" style="font-size:0.92rem;">
-                            ${(item.deskripsi_repair ?? '') ? (item.deskripsi_repair.length > 30 ? item.deskripsi_repair.substring(0, 30) + '...' : item.deskripsi_repair) : '-'}
-                        </div>
-                    </td>
-                    <td class="fw-medium" style="color:var(--primary); font-size:1.08rem; word-break:break-word;">
-                        <i class="fas fa-user-tie me-1"></i> ${item.pic ?? '-'}
+                        ${riskBadge}
                     </td>
                     <td class="fw-medium" style="font-size:1.05rem; word-break:break-word;">
                         <span class="badge bg-light text-dark px-2 py-1 shadow-sm"
                             style="font-size:1.03rem;">
                             <i class="fas fa-calendar-alt me-1 text-primary"></i>
-                            ${(item.created_at ?? '') ? (new Date(item.created_at).toLocaleDateString('en-GB')) : '-'}
+                            ${new Date(item.updated_at).toLocaleDateString()}
                         </span>
                     </td>
                     <td style="word-break:break-word;">
@@ -869,17 +829,15 @@
                             <button
                                 class="btn btn-outline-primary btn-sm btn-edit-inspection shadow-sm px-2 py-1"
                                 data-bs-toggle="modal" data-bs-target="#editModal"
-                                data-id="${item.id ?? ''}" data-area="${item.area ?? ''}"
-                                data-detail_area="${item.detail_area ?? ''}"
-                                data-potensi_bahaya="${item.potensi_bahaya ?? ''}"
-                                data-deskripsi="${item.deskripsi ?? ''}"
-                                data-masukan="${item.masukan ?? ''}"
-                                data-risk="${item.tingkat_prioritas ?? ''}"
-                                data-pic="${item.pic ?? ''}"
-                                data-img="/storage/${item.img_path ?? 'no_img.jpeg'}">
+                                data-id="${item.id}" data-area="${item.area}"
+                                data-detail_area="${item.detail_area}"
+                                data-potensi_bahaya="${item.potensi_bahaya}"
+                                data-deskripsi="${item.deskripsi_repair}"
+                                data-risk="${item.tingkat_prioritas}"
+                                data-img="/storage/${item.img_path_repair}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-outline-danger btn-sm shadow-sm px-2 py-1 btn-delete" data-id="${item.id ?? ''}">
+                            <button class="btn btn-outline-danger btn-sm shadow-sm px-2 py-1 btn-delete" data-id="${item.id}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
@@ -897,8 +855,7 @@
                 if (confirm('Are you sure you want to delete this inspection?')) {
                     const id = $(this).data('id');
                     $.ajax({
-                        url: '{{ route('form-answer.delete', ['id' => '___ID___']) }}'.replace(
-                            '___ID___', id),
+                        url: '{{ route('bod.repair.delete', ['id' => '___ID___']) }}'.replace('___ID___', id),
                         method: 'POST',
                         data: {
                             _token: '{{ csrf_token() }}'
@@ -1026,32 +983,6 @@
         setTimeout(function() {
             window.location.reload();
         }, 300000);
-    </script>
-    <script>
-        // Set the Form Perbaikan button to bring the current inspection id
-        document.addEventListener('DOMContentLoaded', function() {
-            // When image modal is shown, set the id on the button
-            var btn = document.getElementById('btnFormPerbaikan');
-            var imageModal = document.getElementById('imageModal');
-            var currentId = null;
-
-            // Listen for image click to set currentId
-            $(document).on('click', '.photo-cell img', function() {
-                currentId = $(this).closest('tr').find('.btn-edit-inspection').data('id');
-                if (btn) {
-                    btn.href = "{{ route('form.repair', ['id' => '__ID__']) }}".replace('__ID__',
-                        currentId);
-                }
-            });
-
-            // Also handle if modal is opened by other means
-            $('#imageModal').on('show.bs.modal', function() {
-                if (btn && currentId) {
-                    btn.href = "{{ route('form.repair', ['id' => '__ID__']) }}".replace('__ID__',
-                        currentId);
-                }
-            });
-        });
     </script>
 </body>
 

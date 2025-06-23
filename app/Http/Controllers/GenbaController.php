@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormAnswerModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,11 +12,112 @@ class GenbaController extends Controller
     {
         return view('ori_app.form_temuan');
     }
+    public function dashboard()
+    {
+        $temuan = FormAnswerModel::all();
+        $sum_temuan = FormAnswerModel::count();
+        $sum_none_temuan = FormAnswerModel::where('status', 'none')->count();
+        $sum_ongoing_temuan = FormAnswerModel::where('status', 'on going')->count();
+        $sum_done_temuan = FormAnswerModel::where('status', 'done')->count();
+
+        // Get data for priority line chart (grouped by month)
+        $priorityData = $this->getPriorityTrendData();
+
+        // Get data for donut chart (priority distribution)
+        $donutData = $this->getPriorityDistributionData();
+
+        return view('ori_app.dashboard_ehs', compact(
+            'temuan',
+            'sum_temuan',
+            'sum_none_temuan',
+            'sum_ongoing_temuan',
+            'sum_done_temuan',
+            'priorityData',
+            'donutData'
+        ));
+    }
+
+    private function getPriorityTrendData()
+    {
+        // Get all months that have data
+        $months = FormAnswerModel::selectRaw('MONTH(created_at) as month, MONTHNAME(created_at) as month_name')
+            ->groupBy('month', 'month_name')
+            ->orderBy('month')
+            ->get();
+
+        // Initialize data structure
+        $labels = [];
+        $criticalData = [];
+        $highData = [];
+        $mediumData = [];
+        $lowData = [];
+
+        foreach ($months as $month) {
+            $labels[] = $month->month_name;
+
+            $criticalData[] = FormAnswerModel::where('tingkat_prioritas', 'critical')
+                ->whereMonth('created_at', $month->month)
+                ->count();
+
+            $highData[] = FormAnswerModel::where('tingkat_prioritas', 'high')
+                ->whereMonth('created_at', $month->month)
+                ->count();
+
+            $mediumData[] = FormAnswerModel::where('tingkat_prioritas', 'medium')
+                ->whereMonth('created_at', $month->month)
+                ->count();
+
+            $lowData[] = FormAnswerModel::where('tingkat_prioritas', 'low')
+                ->whereMonth('created_at', $month->month)
+                ->count();
+        }
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                'critical' => $criticalData,
+                'high' => $highData,
+                'medium' => $mediumData,
+                'low' => $lowData,
+            ]
+        ];
+    }
+
+    private function getPriorityDistributionData()
+    {
+        $critical = FormAnswerModel::where('tingkat_prioritas', 'critical')->count();
+        $high = FormAnswerModel::where('tingkat_prioritas', 'high')->count();
+        $medium = FormAnswerModel::where('tingkat_prioritas', 'medium')->count();
+        $low = FormAnswerModel::where('tingkat_prioritas', 'low')->count();
+
+        return [
+            'labels' => ['Kritis', 'Tinggi', 'Sedang', 'Rendah'],
+            'data' => [$critical, $high, $medium, $low]
+        ];
+    }
     public function bod()
     {
-        $data = \App\Models\FormAnswerModel::all();
-        return view('ori_app.bod', compact('data'));
+        return view('ori_app.bod');
     }
+    public function bodData(Request $request)
+    {
+        $data = FormAnswerModel::all();
+        $perPage = 5;
+        $page = $request->input('page', 1);
+        $paginated = FormAnswerModel::paginate($perPage, ['*'], 'page', $page);
+        return response()->json($paginated);
+    }
+    // public function bodRepair()
+    // {
+    //     return view('ori_app.bod_repair');
+    // }
+    // public function bodRepairData(Request $request)
+    // {
+    //     $perPage = 5;
+    //     $page = $request->input('page', 1);
+    //     $paginated = FormAnswerModel::where('status', 'done')->paginate($perPage, ['*'], 'page', $page);
+    //     return response()->json($paginated);
+    // }
     public function update(Request $request)
     {
         try {
@@ -58,12 +160,7 @@ class GenbaController extends Controller
                 'area' => 'required|string|max:255',
                 'detail_area' => 'required|string|max:255',
                 'img_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'kategori_temuan' => 'required|string|max:255',
                 'deskripsi' => 'required|string|max:1000',
-                'potensi_bahaya' => 'required|string|max:1000',
-                'masukan' => 'required|string|max:1000',
-                'tingkat_prioritas' => 'required|string|max:50',
-                'pic' => 'required|string|max:255',
             ]);
             // Handle file upload
             if ($request->hasFile('img_path')) {
@@ -99,6 +196,53 @@ class GenbaController extends Controller
                 'message' => 'An error occurred while loading the form.',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+    public function repair($id)
+    {
+        $data = FormAnswerModel::findOrFail($id);
+        return view('ori_app.form_repair', compact('data'));
+    }
+    public function repairUpdate(Request $request, $id)
+    {
+        try {
+            $request->validate([
+            'img_path_repair' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'deskripsi_repair' => 'required|string|max:1000',
+            ]);
+
+            $formAnswer = FormAnswerModel::findOrFail($id);
+
+            // Handle file upload
+            if ($request->hasFile('img_path_repair')) {
+            if ($formAnswer->img_path_repair && Storage::disk('public')->exists($formAnswer->img_path_repair)) {
+                Storage::disk('public')->delete($formAnswer->img_path_repair);
+            }
+            $imagePath = $request->file('img_path_repair')->store('repair_images', 'public');
+            $formAnswer->img_path_repair = $imagePath;
+            }
+
+            $formAnswer->deskripsi_repair = $request->input('deskripsi_repair');
+            $formAnswer->status = 'done'; // Update status to done
+            $formAnswer->save();
+
+            return redirect()->route('bod')->with('success', 'Repair updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error updating repair: ' . $e->getMessage()]);
+        }
+    }
+
+    public function delete($id)
+    {
+        try {
+            $data = FormAnswerModel::findOrFail($id);
+            if ($data->img_path && Storage::disk('public')->exists($data->img_path)) {
+                Storage::disk('public')->delete($data->img_path);
+            }
+            $data->delete();
+            return redirect()->back()->with('success', 'Inspection deleted successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error deleting inspection: ' . $e->getMessage()]);
         }
     }
 }

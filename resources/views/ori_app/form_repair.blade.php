@@ -244,30 +244,17 @@
                 <h2 class="h5 mb-0"><i class="fas fa-clipboard-check me-2"></i>Form Temuan GENBA</h2>
             </div>
             <div class="card-body">
-                <form id="genbaForm" action="{{ route('form.submit') }}" method="POST" enctype="multipart/form-data">
+                <form id="genbaForm" action="{{ route('form.repair.update' ,['id' => $data->id]) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <!-- Nama PIC -->
                     <div class="mb-4">
-                        <label for="area" class="form-label">NAMA PIC</label>
-                        <input type="text" name="pic" id="pic" class="form-control" placeholder="Isi dengan nama lengkap" required>
+                        <label for="area" class="form-label">ID FORM TEMUAN</label>
+                        <input type="text" name="id" id="id" class="form-control" placeholder="Isi dengan nama lengkap" readonly value="{{ $data->id }}">
                     </div>
 
-                    <!-- Area Selection -->
+                    <!-- Foto Perbaikan -->
                     <div class="mb-4">
-                        <label for="area" class="form-label">PILIH AREA</label>
-                        <input type="text" name="area" id="area" class="form-control" placeholder="Contoh: Cluster 1 - Mesin 801" required>
-                    </div>
-
-                    <!-- Detail Lokasi -->
-                    <div class="mb-4">
-                        <label for="detail_area" class="form-label">DETAIL LOKASI</label>
-                        <input type="text" name="detail_area" class="form-control" id="detail_area" placeholder="Contoh: Mesin Injeksi #5, Line Assembly B" required>
-                        <div class="form-text">Sebutkan lokasi spesifik dengan jelas</div>
-                    </div>
-
-                    <!-- Foto Temuan -->
-                    <div class="mb-4">
-                        <label class="form-label">FOTO TEMUAN</label>
+                        <label class="form-label">FOTO PERBAIKAN</label>
                         <div class="photo-preview p-3 mb-3" id="photoPreviewContainer">
                             <img id="photoPreview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8f9fa'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='16' fill='%236c757d' text-anchor='middle'%3EKlik untuk menambahkan foto%3C/text%3E%3C/svg%3E" 
                                  class="img-fluid mb-2 d-none" style="max-height: 300px; width: 100%; object-fit: cover;">
@@ -291,59 +278,19 @@
                                 <i class="fas fa-images me-2"></i>Dari Galeri
                             </button>
                         </div>
-                        <input type="file" id="photoInput" name="img_path" accept="image/*" class="d-none" capture="environment">
+                        <input type="file" id="photoInput" name="img_path_repair" accept="image/*" class="d-none" capture="environment">
                     </div>
 
-                    <!-- Kategori Temuan -->
-                    <div class="mb-4">
-                        <label for="findingCategory" class="form-label">KATEGORI TEMUAN (OPTIONAL)</label>
-                        <select class="form-select" id="findingCategory" name="kategori_temuan">
-                            <option value="" selected disabled>-- Pilih Kategori --</option>
-                            <option value="safety">Keselamatan (Safety)</option>
-                            <option value="quality">Kualitas (Quality)</option>
-                            <option value="productivity">Produktivitas</option>
-                            <option value="5s">5S (Housekeeping)</option>
-                            <option value="maintenance">Maintenance</option>
-                            <option value="other">Lainnya</option>
-                        </select>
-                    </div>
-
-                    <!-- Deskripsi Temuan -->
+                    <!-- Deskripsi Perbaikan -->
                     <div class="mb-4">
                         <label for="findingDescription" class="form-label">DESKRIPSI TEMUAN</label>
-                        <textarea class="form-control" id="findingDescription" name="deskripsi" rows="3" placeholder="Deskripsi lengkap temuan..." required></textarea>
+                        <textarea class="form-control" id="findingDescription" name="deskripsi_repair" rows="3" placeholder="Deskripsi lengkap temuan..." required></textarea>
                         <div class="form-text">Jelaskan secara rinci apa yang ditemukan</div>
-                    </div>
-
-                    <!-- Potensi Bahaya -->
-                    <div class="mb-4">
-                        <label for="hazardPotential" class="form-label">POTENSI BAHAYA (OPTIONAL)</label>
-                        <textarea class="form-control" id="hazardPotential" name="potensi_bahaya" rows="2" placeholder="Jelaskan potensi bahaya yang mungkin terjadi..."></textarea>
-                        <div class="form-text">Identifikasi risiko yang mungkin timbul</div>
-                    </div>
-
-                    <!-- Rekomendasi Perbaikan -->
-                    <div class="mb-4">
-                        <label for="improvementRecommendation" class="form-label">REKOMENDASI PERBAIKAN (OPTIONAL)</label>
-                        <textarea class="form-control" id="improvementRecommendation" name="masukan" rows="2" placeholder="Masukkan rekomendasi perbaikan jika ada..."></textarea>
-                        <div class="form-text">Opsional - saran untuk perbaikan</div>
-                    </div>
-
-                    <!-- Prioritas -->
-                    <div class="mb-4">
-                        <label for="priorityLevel" class="form-label">TINGKAT PRIORITAS (OPTIONAL)</label>
-                        <select class="form-select" id="priorityLevel" name="tingkat_prioritas">
-                            <option value="" selected disabled>-- Pilih Prioritas --</option>
-                            <option value="low">Rendah</option>
-                            <option value="medium">Sedang</option>
-                            <option value="high">Tinggi</option>
-                            <option value="critical">Kritis</option>
-                        </select>
                     </div>
 
                     <!-- Submit Button -->
                     <button type="submit" class="btn btn-submit btn-lg w-100f">
-                        <i class="fas fa-paper-plane me-2"></i>SUBMIT TEMUAN
+                        <i class="fas fa-paper-plane me-2"></i>SUBMIT PERBAIKAN
                     </button>
                 </form>
             </div>
