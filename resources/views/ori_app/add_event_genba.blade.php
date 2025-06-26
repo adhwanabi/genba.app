@@ -730,7 +730,8 @@
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit',
-                        hour12: false
+                        hour12: false,
+                        timeZone: 'UTC'
                     };
 
                     let eventDetails = `
@@ -772,7 +773,24 @@
                     if (arg.event.allDay) {
                         timeText = 'All Day';
                     } else {
-                        timeText = arg.timeText;
+                        // Format timeText in UTC
+                        if (arg.event.start) {
+                            const start = arg.event.start;
+                            const end = arg.event.end;
+                            const options = {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                                timeZone: 'UTC'
+                            };
+                            if (end) {
+                                timeText = `${start.toLocaleTimeString('id-ID', options)}-${end.toLocaleTimeString('id-ID', options)}`;
+                            } else {
+                                timeText = `${start.toLocaleTimeString('id-ID', options)}`;
+                            }
+                        } else {
+                            timeText = '';
+                        }
                     }
 
                     let eventElement = document.createElement('div');
@@ -924,7 +942,8 @@
                     year: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: false
+                    hour12: false,
+                    timeZone: 'UTC'
                 };
 
                 const dateRange = `
