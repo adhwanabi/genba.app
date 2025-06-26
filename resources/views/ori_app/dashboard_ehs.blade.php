@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Google Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="{{ asset('css/material-icons.css') }}" rel="stylesheet">
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('js/chart.umd.min.js') }}"></script>
     <title>Dashboard Laporan Temuan</title>
     <style>
         :root {
@@ -199,6 +199,22 @@
             padding: 1rem;
         }
 
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+
         /* Mobile View */
         @media (max-width: 992px) {
             .sidebar {
@@ -277,25 +293,25 @@
         <ul class="sidebar-menu">
             <li>
                 <a href="#" class="active">
-                    <span class="material-icons">dashboard</span>
+                    <img src="{{ asset('img/icon/dashboard.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('bod') }}">
-                    <span class="material-icons">assignment</span>
+                    <img src="{{ asset('img/icon/assignment.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
                     <span>BOD</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('form') }}" class="d-flex align-items-center">
-                    <span class="material-icons">add_circle</span>
+                    <img src="{{ asset('img/icon/add.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
                     <span>Buat Temuan</span>
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <span class="material-icons">logout</span>
+                <a href="{{ route('logout') }}">
+                    <img src="{{ asset('img/icon/logout.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
                     <span>Keluar</span>
                 </a>
             </li>
@@ -444,7 +460,7 @@
                                                 <td>
                                                     <a href="{{ route('form.repair', ['id' => $item->id]) }}"
                                                         class="text-primary" title="Perbaikan">
-                                                        <span class="material-icons">build</span>
+                                                        <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan" style="width:24px;height:24px;">
                                                     </a>
                                                 </td>
                                             </tr>
@@ -462,9 +478,9 @@
     </div>
 
     <!-- jQuery (Wajib sebelum Bootstrap JS jika pakai jQuery di bawah) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('js/jquery-3.7.1.min.js') }}"></script>
     <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
 
     <script>
         // Sidebar Toggle
@@ -677,7 +693,7 @@
                 <td>${createdAt}</td>
                 <td>
                     <a href="${item.id ? '/form/repair/' + item.id : '#'}" class="text-primary" title="Perbaikan">
-                        <span class="material-icons">build</span>
+                        <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan" style="width:24px;height:24px;">
                     </a>
                 </td>
             </tr>
