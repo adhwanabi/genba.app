@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/main.css') }}">
     <script src="{{ asset('js/index.global.js') }}"></script>
     <!-- Flatpickr for datetime picker -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="{{ asset('css/flatpickr.min.css') }}">
     <title>Genba Event Management</title>
     <style>
         :root {
@@ -656,8 +656,8 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <!-- Flatpickr for datetime picker -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <script src="{{ asset('js/flatpickr.js') }}"></script>
+    <script src="{{ asset('js/id.js') }}"></script>
 
     <script>
         // Sidebar Toggle
