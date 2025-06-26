@@ -12,14 +12,15 @@
     <!-- Sweetalert2 -->
     <link rel="stylesheet" href="{{ asset('css/sweetalert2.css') }}">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: #4361ee;
             --primary-light: #ebedfd;
             --secondary: #3f37c9;
             --danger: #f72585;
-            --warning: #f8961e;
+            --warning: #3cff00;
             --success: #4cc9f0;
             --dark: #212529;
             --light: #f8f9fa;
@@ -346,6 +347,15 @@
             <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-center mb-4 gap-3">
 
                 <div class="d-flex gap-2 order-md-1 w-100 w-md-auto">
+                    <div class="w-25">
+                        <select class="form-select" id="filterDate" style="border-radius: 10px;">
+                            <option value="">Filter by Date</option>
+                            @foreach ($tgl as $date)
+                                <option value="{{ $date }}">{{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button class="btn btn-primary shadow-sm" id="downloadPdf" onclick="exportData()">
                         <i class="fas fa-download me-2"></i> Download CSV
                     </button>
@@ -536,10 +546,9 @@
                                         <label for="editModalRisk" class="form-label fw-semibold">Risk Level</label>
                                         <select class="form-select shadow-sm" id="editModalRisk"
                                             name="tingkat_prioritas">
-                                            <option value="critical">Critical</option>
-                                            <option value="high">High</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="low">Low</option>
+                                            <option value="a">Grade A</option>
+                                            <option value="b">Grade B</option>
+                                            <option value="c">Grade C</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -613,20 +622,17 @@
                 const riskBadge = document.createElement('span');
                 riskBadge.className = 'badge-risk';
 
-                if (risk === 'critical') {
+                if (risk === 'a') {
                     riskBadge.classList.add('risk-high');
                     riskBadge.style.background = 'rgba(220,53,69,0.15)';
                     riskBadge.style.color = '#dc3545';
                     riskBadge.innerHTML = '<i class="fas fa-skull-crossbones me-1"></i> Critical';
-                } else if (risk === 'high') {
+                } else if (risk === 'b') {
                     riskBadge.classList.add('risk-high');
                     riskBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> High';
-                } else if (risk === 'medium') {
+                } else if (risk === 'c') {
                     riskBadge.classList.add('risk-medium');
                     riskBadge.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Medium';
-                } else {
-                    riskBadge.classList.add('risk-low');
-                    riskBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> Low';
                 }
 
                 document.getElementById('modalRisk').innerHTML = '';
@@ -726,6 +732,7 @@
                     url: '{{ route('bod.data') }}',
                     type: 'GET',
                     data: {
+                        ...(($('#filterDate').val()) ? { search: $('#filterDate').val() } : {}),
                         page: page
                     },
                     headers: {
@@ -743,6 +750,34 @@
                     }
                 });
             }
+
+            $(document).on('change', '#filterDate', function() {
+                const selectedDate = $(this).val();
+                // AJAX ke bod.data dengan filter tanggal
+                $.ajax({
+                    url: '{{ route('bod.data') }}',
+                    type: 'GET',
+                    data: {
+                        search: selectedDate
+                    },
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        // Update table body
+                        if (typeof updateTableBody === 'function') {
+                            updateTableBody(response.data);
+                        }
+                        // Update pagination jika perlu
+                        if (typeof updatePaginationLinks === 'function') {
+                            updatePaginationLinks(response);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
 
             // Function to update table body
             function updateTableBody(data) {
@@ -765,25 +800,20 @@
                     let riskBadge = '';
                     const risk = (item.tingkat_prioritas ?? '').toLowerCase();
 
-                    if (risk === 'critical') {
+                    if (risk === 'a') {
                         riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
                     style="background:rgba(220,53,69,0.15);color:#dc3545;font-size:1.05rem;">
                     <i class="fas fa-skull-crossbones me-1"></i> Critical
                 </span>`;
-                    } else if (risk === 'high') {
+                    } else if (risk === 'b') {
                         riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
                     style="font-size:1.05rem;">
                     <i class="fas fa-exclamation-triangle me-1"></i> High
                 </span>`;
-                    } else if (risk === 'medium') {
+                    } else if (risk === 'c') {
                         riskBadge = `<span class="badge-risk risk-medium d-inline-flex align-items-center px-3 py-2"
                     style="font-size:1.05rem;">
                     <i class="fas fa-exclamation-circle me-1"></i> Medium
-                </span>`;
-                    } else {
-                        riskBadge = `<span class="badge-risk risk-low d-inline-flex align-items-center px-3 py-2"
-                    style="font-size:1.05rem;">
-                    <i class="fas fa-check-circle me-1"></i> Low
                 </span>`;
                     }
 
@@ -794,9 +824,9 @@
                             <i class="fas fa-map-marker-alt me-1 text-success"></i> ${item.area ?? '-'}
                         </div>
                         ${(item.detail_area ?? '') ? `
-                            <div class="text-muted small mt-1 ps-4" style="font-size:1.05rem;">
-                                <i class="fas fa-location-arrow me-1"></i> ${item.detail_area}
-                            </div>` : ''}
+                                <div class="text-muted small mt-1 ps-4" style="font-size:1.05rem;">
+                                    <i class="fas fa-location-arrow me-1"></i> ${item.detail_area}
+                                </div>` : ''}
                     </td>
                     <td class="photo-cell text-center" style="word-break:break-word;">
                         <div class="position-relative d-inline-block">
@@ -824,10 +854,10 @@
                             ${(item.deskripsi ?? '') ? (item.deskripsi.length > 30 ? item.deskripsi.substring(0, 30) + '...' : item.deskripsi) : '-'}
                         </div>
                         ${(item.masukan ?? '') ? `
-                            <div class="text-success small mt-1" style="font-size:0.9rem;">
-                                <i class="fas fa-lightbulb me-1"></i>
-                                ${(item.masukan.length > 30 ? item.masukan.substring(0, 30) + '...' : item.masukan)}
-                            </div>` : ''}
+                                <div class="text-success small mt-1" style="font-size:0.9rem;">
+                                    <i class="fas fa-lightbulb me-1"></i>
+                                    ${(item.masukan.length > 30 ? item.masukan.substring(0, 30) + '...' : item.masukan)}
+                                </div>` : ''}
                     </td>
                     <td class="photo-cell text-center" style="word-break:break-word;">
                         <div class="position-relative d-inline-block">
@@ -980,25 +1010,20 @@
                     const risk = $(this).data('risk').toLowerCase();
                     let riskBadge = '';
 
-                    if (risk === 'critical') {
+                    if (risk === 'a') {
                         riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
                     style="background:rgba(220,53,69,0.15);color:#dc3545;font-size:1.05rem;">
                     <i class="fas fa-skull-crossbones me-1"></i> Critical
                 </span>`;
-                    } else if (risk === 'high') {
+                    } else if (risk === 'b') {
                         riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
                     style="font-size:1.05rem;">
                     <i class="fas fa-exclamation-triangle me-1"></i> High
                 </span>`;
-                    } else if (risk === 'medium') {
+                    } else if (risk === 'c') {
                         riskBadge = `<span class="badge-risk risk-medium d-inline-flex align-items-center px-3 py-2"
                     style="font-size:1.05rem;">
                     <i class="fas fa-exclamation-circle me-1"></i> Medium
-                </span>`;
-                    } else {
-                        riskBadge = `<span class="badge-risk risk-low d-inline-flex align-items-center px-3 py-2"
-                    style="font-size:1.05rem;">
-                    <i class="fas fa-check-circle me-1"></i> Low
                 </span>`;
                     }
 

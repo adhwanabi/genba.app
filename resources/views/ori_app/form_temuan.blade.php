@@ -334,10 +334,9 @@
                         <label for="priorityLevel" class="form-label">TINGKAT PRIORITAS (OPTIONAL)</label>
                         <select class="form-select" id="priorityLevel" name="tingkat_prioritas">
                             <option value="" selected disabled>-- Pilih Prioritas --</option>
-                            <option value="low">Rendah</option>
-                            <option value="medium">Sedang</option>
-                            <option value="high">Tinggi</option>
-                            <option value="critical">Kritis</option>
+                            <option value="c">Grade C</option>
+                            <option value="b">Grade B</option>
+                            <option value="a">Grade A</option>
                         </select>
                     </div>
 
@@ -412,8 +411,8 @@
                     }
                     
                     // Validate file size (max 5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('Ukuran file maksimal 5MB!');
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert('Ukuran file maksimal 20MB!');
                         return;
                     }
                     

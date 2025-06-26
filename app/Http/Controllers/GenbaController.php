@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FormAnswerModel;
+use App\Models\GenbaEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -33,8 +34,12 @@ class GenbaController extends Controller
             'sum_ongoing_temuan',
             'sum_done_temuan',
             'priorityData',
-            'donutData'
+            'donutData',
         ));
+    }
+
+    public function addGenba(){
+        return view('ori_app.add_event_genba');
     }
 
     private function getPriorityTrendData()
@@ -55,19 +60,15 @@ class GenbaController extends Controller
         foreach ($months as $month) {
             $labels[] = $month->month_name;
 
-            $criticalData[] = FormAnswerModel::where('tingkat_prioritas', 'critical')
+            $criticalData[] = FormAnswerModel::where('tingkat_prioritas', 'a')
                 ->whereMonth('created_at', $month->month)
                 ->count();
 
-            $highData[] = FormAnswerModel::where('tingkat_prioritas', 'high')
+            $highData[] = FormAnswerModel::where('tingkat_prioritas', 'b')
                 ->whereMonth('created_at', $month->month)
                 ->count();
 
-            $mediumData[] = FormAnswerModel::where('tingkat_prioritas', 'medium')
-                ->whereMonth('created_at', $month->month)
-                ->count();
-
-            $lowData[] = FormAnswerModel::where('tingkat_prioritas', 'low')
+            $mediumData[] = FormAnswerModel::where('tingkat_prioritas', 'c')
                 ->whereMonth('created_at', $month->month)
                 ->count();
         }
@@ -78,26 +79,28 @@ class GenbaController extends Controller
                 'critical' => $criticalData,
                 'high' => $highData,
                 'medium' => $mediumData,
-                'low' => $lowData,
             ]
         ];
     }
 
     private function getPriorityDistributionData()
     {
-        $critical = FormAnswerModel::where('tingkat_prioritas', 'critical')->count();
-        $high = FormAnswerModel::where('tingkat_prioritas', 'high')->count();
-        $medium = FormAnswerModel::where('tingkat_prioritas', 'medium')->count();
-        $low = FormAnswerModel::where('tingkat_prioritas', 'low')->count();
+        $critical = FormAnswerModel::where('tingkat_prioritas', 'a')->count();
+        $high = FormAnswerModel::where('tingkat_prioritas', 'b')->count();
+        $medium = FormAnswerModel::where('tingkat_prioritas', 'c')->count();
 
         return [
-            'labels' => ['Kritis', 'Tinggi', 'Sedang', 'Rendah'],
-            'data' => [$critical, $high, $medium, $low]
+            'labels' => ['Grade A', 'Grade B', 'Grade C'],
+            'data' => [$critical, $high, $medium,]
         ];
     }
     public function bod()
     {
-        return view('ori_app.bod');
+        $tgl = GenbaEvent::selectRaw('DATE(start_date) as date_only')
+            ->distinct()
+            ->pluck('date_only')
+            ->toArray();
+        return view('ori_app.bod',compact('tgl'));
     }
     public function bodData(Request $request)
     {
@@ -105,6 +108,11 @@ class GenbaController extends Controller
         $perPage = 5;
         $page = $request->input('page', 1);
         $paginated = FormAnswerModel::paginate($perPage, ['*'], 'page', $page);
+        $search = $request->input('search');
+        if ($search) {
+            $paginated = FormAnswerModel::whereDate('created_at', $search)
+                ->paginate($perPage, ['*'], 'page', $page);
+        }
         return response()->json($paginated);
     }
     // public function bodRepair()
@@ -129,7 +137,7 @@ class GenbaController extends Controller
                 'potensi_bahaya' => 'sometimes|required|string|max:255',
                 'deskripsi' => 'sometimes|required|string',
                 'masukan' => 'sometimes|required|string|max:255',
-                'tingkat_prioritas' => 'sometimes|required|in:critical,high,medium,low',
+                'tingkat_prioritas' => 'sometimes|required|in:a,b,c',
                 'pic' => 'sometimes|required|string|max:255',
                 'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);

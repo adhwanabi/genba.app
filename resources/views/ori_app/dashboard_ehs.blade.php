@@ -9,6 +9,8 @@
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Google Material Icons -->
     <link href="{{ asset('css/material-icons.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="{{ asset('css/all.min.css') }}">
     <!-- Chart.js -->
     <script src="{{ asset('js/chart.umd.min.js') }}"></script>
     <title>Dashboard Laporan Temuan</title>
@@ -18,7 +20,7 @@
             --primary-light: #ebedfd;
             --secondary: #3f37c9;
             --danger: #f72585;
-            --warning: #f8961e;
+            --warning: #3cff00;
             --success: #4cc9f0;
             --dark: #212529;
             --light: #f8f9fa;
@@ -293,25 +295,32 @@
         <ul class="sidebar-menu">
             <li>
                 <a href="#" class="active">
-                    <img src="{{ asset('img/icon/dashboard.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
+                    <i class="fas fa-tachometer-alt me-2" style="font-size: 1.2rem;"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('bod') }}">
-                    <img src="{{ asset('img/icon/assignment.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
+                    <i class="fas fa-tasks me-2" style="font-size: 1.2rem;"></i>
                     <span>BOD</span>
                 </a>
             </li>
             <li>
                 <a href="{{ route('form') }}" class="d-flex align-items-center">
-                    <img src="{{ asset('img/icon/add.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
+                    <i class="fas fa-plus-circle me-2" style="font-size: 1.2rem;"></i>
                     <span>Buat Temuan</span>
                 </a>
             </li>
             <li>
+                <a href="{{ route('genba.add') }}">
+                    <i class="fas fa-calendar-plus me-2" style="font-size: 1.2rem;"></i>
+                    <span>Tambah Genba Event</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('logout') }}">
-                    <img src="{{ asset('img/icon/logout.png') }}" alt="Dashboard" style="width:24px;height:24px;" class="me-2">
+                    <img src="{{ asset('img/icon/logout.png') }}" alt="Dashboard" style="width:24px;height:24px;"
+                        class="me-2">
                     <span>Keluar</span>
                 </a>
             </li>
@@ -437,14 +446,12 @@
                                                 <td>#{{ $item->id }}</td>
                                                 <td>{{ Str::limit($item->deskripsi, 30) }}</td>
                                                 <td>
-                                                    @if ($item->tingkat_prioritas == 'critical')
-                                                        <span class="badge badge-priority badge-critical">Kritis</span>
-                                                    @elseif($item->tingkat_prioritas == 'high')
-                                                        <span class="badge badge-priority badge-high">Tinggi</span>
-                                                    @elseif($item->tingkat_prioritas == 'medium')
-                                                        <span class="badge badge-priority badge-medium">Sedang</span>
-                                                    @else
-                                                        <span class="badge badge-priority badge-low">Rendah</span>
+                                                    @if ($item->tingkat_prioritas == 'a')
+                                                        <span class="badge badge-priority badge-critical">Grade A</span>
+                                                    @elseif($item->tingkat_prioritas == 'b')
+                                                        <span class="badge badge-priority badge-high">Grade B</span>
+                                                    @elseif($item->tingkat_prioritas == 'c')
+                                                        <span class="badge badge-priority badge-medium">Grade C</span>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -460,7 +467,8 @@
                                                 <td>
                                                     <a href="{{ route('form.repair', ['id' => $item->id]) }}"
                                                         class="text-primary" title="Perbaikan">
-                                                        <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan" style="width:24px;height:24px;">
+                                                        <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan"
+                                                            style="width:24px;height:24px;">
                                                     </a>
                                                 </td>
                                             </tr>
@@ -492,11 +500,16 @@
             document.getElementById('sidebar').classList.remove('active');
         });
 
+        // Global chart variables
+        let priorityChart, donutChart;
+        let currentPage = 1;
+        let refreshInterval;
+
         // Chart Data - Using PHP data passed from controller
         const priorityData = {
             labels: @json($priorityData['labels']),
             datasets: [{
-                    label: 'Kritis',
+                    label: 'Grade A',
                     data: @json($priorityData['datasets']['critical']),
                     backgroundColor: 'rgba(247, 37, 133, 0.2)',
                     borderColor: 'rgba(247, 37, 133, 1)',
@@ -504,7 +517,7 @@
                     tension: 0.4
                 },
                 {
-                    label: 'Tinggi',
+                    label: 'Grade B',
                     data: @json($priorityData['datasets']['high']),
                     backgroundColor: 'rgba(248, 150, 30, 0.2)',
                     borderColor: 'rgba(248, 150, 30, 1)',
@@ -512,21 +525,13 @@
                     tension: 0.4
                 },
                 {
-                    label: 'Sedang',
+                    label: 'Grade C',
                     data: @json($priorityData['datasets']['medium']),
-                    backgroundColor: 'rgba(67, 97, 238, 0.2)',
-                    borderColor: 'rgba(67, 97, 238, 1)',
+                    backgroundColor: 'rgba(60, 255, 0, 0.2)',
+                    borderColor: 'rgba(60, 255, 0, 1)',
                     borderWidth: 2,
                     tension: 0.4
                 },
-                {
-                    label: 'Rendah',
-                    data: @json($priorityData['datasets']['low']),
-                    backgroundColor: 'rgba(76, 201, 240, 0.2)',
-                    borderColor: 'rgba(76, 201, 240, 1)',
-                    borderWidth: 2,
-                    tension: 0.4
-                }
             ]
         };
 
@@ -537,14 +542,12 @@
                 backgroundColor: [
                     'rgba(247, 37, 133, 0.7)',
                     'rgba(248, 150, 30, 0.7)',
-                    'rgba(67, 97, 238, 0.7)',
-                    'rgba(76, 201, 240, 0.7)'
+                    'rgba(60, 255, 0, 0.7)',
                 ],
                 borderColor: [
                     'rgba(247, 37, 133, 1)',
                     'rgba(248, 150, 30, 1)',
-                    'rgba(67, 97, 238, 1)',
-                    'rgba(76, 201, 240, 1)'
+                    'rgba(60, 255, 0, 1)',
                 ],
                 borderWidth: 1
             }]
@@ -598,11 +601,39 @@
         };
 
         $(document).ready(function() {
+            // Initialize Charts
+            priorityChart = new Chart(
+                document.getElementById('priorityChart').getContext('2d'),
+                priorityConfig
+            );
+
+            donutChart = new Chart(
+                document.getElementById('donutChart').getContext('2d'),
+                donutConfig
+            );
+
             // Load initial data
-            loadData(1);
+            loadData(currentPage);
+
+            // Set up auto-refresh every 10 seconds
+            setupAutoRefresh();
+
+            // Function to set up auto-refresh
+            function setupAutoRefresh() {
+                // Clear existing interval if any
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                }
+
+                // Set new interval
+                refreshInterval = setInterval(function() {
+                    loadData(currentPage);
+                }, 16000); //  3 Menit
+            }
 
             // Function to load data via AJAX
             function loadData(page) {
+                currentPage = page;
                 $.ajax({
                     url: '{{ route('bod.data') }}',
                     type: 'GET',
@@ -618,11 +649,31 @@
 
                         // Update pagination links
                         updatePaginationLinks(response);
+
+                        // Update charts if chart data is provided
+                        if (response.chartData) {
+                            updateCharts(response.chartData);
+                        }
                     },
                     error: function(xhr) {
-                        console.error(xhr.responseText);
+                        console.error('Error loading data:', xhr.responseText);
                     }
                 });
+            }
+
+            // Function to update charts
+            function updateCharts(chartData) {
+                // Update priority chart
+                priorityChart.data.labels = chartData.priority.labels;
+                priorityChart.data.datasets[0].data = chartData.priority.datasets.critical;
+                priorityChart.data.datasets[1].data = chartData.priority.datasets.high;
+                priorityChart.data.datasets[2].data = chartData.priority.datasets.medium;
+                priorityChart.update();
+
+                // Update donut chart
+                donutChart.data.labels = chartData.donut.labels;
+                donutChart.data.datasets[0].data = chartData.donut.data;
+                donutChart.update();
             }
 
             // Function to update table body
@@ -632,13 +683,13 @@
 
                 if (data.length === 0) {
                     tbody.append(`
-            <tr>
-                <td colspan="6" class="text-center text-muted py-5" style="font-size:1.15rem;">
-                    <i class="fas fa-info-circle fa-2x mb-3" style="color:#4361ee;"></i>
-                    <div class="fs-5">Tidak ada data temuan ditemukan.</div>
-                </td>
-            </tr>
-        `);
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5" style="font-size:1.15rem;">
+                            <i class="fas fa-info-circle fa-2x mb-3" style="color:#4361ee;"></i>
+                            <div class="fs-5">Tidak ada data temuan ditemukan.</div>
+                        </td>
+                    </tr>
+                `);
                     return;
                 }
 
@@ -647,14 +698,12 @@
                     let priorityBadge = '';
                     const priority = (item.tingkat_prioritas ?? '').toLowerCase();
 
-                    if (priority === 'critical') {
-                        priorityBadge = '<span class="badge badge-priority badge-critical">Kritis</span>';
-                    } else if (priority === 'high') {
-                        priorityBadge = '<span class="badge badge-priority badge-high">Tinggi</span>';
-                    } else if (priority === 'medium') {
-                        priorityBadge = '<span class="badge badge-priority badge-medium">Sedang</span>';
-                    } else {
-                        priorityBadge = '<span class="badge badge-priority badge-low">Rendah</span>';
+                    if (priority === 'a') {
+                        priorityBadge = '<span class="badge badge-priority badge-critical">Grade A</span>';
+                    } else if (priority === 'b') {
+                        priorityBadge = '<span class="badge badge-priority badge-high">Grade B</span>';
+                    } else if (priority === 'c') {
+                        priorityBadge = '<span class="badge badge-priority badge-medium">Grade C</span>';
                     }
 
                     // Status badge
@@ -685,40 +734,23 @@
 
                     // Create row
                     let row = `
-            <tr>
-                <td>#${item.id ?? '-'}</td>
-                <td>${item.deskripsi ? (item.deskripsi.length > 30 ? item.deskripsi.substring(0, 30) + '...' : item.deskripsi) : '-'}</td>
-                <td>${priorityBadge}</td>
-                <td>${statusBadge}</td>
-                <td>${createdAt}</td>
-                <td>
-                    <a href="${item.id ? '/form/repair/' + item.id : '#'}" class="text-primary" title="Perbaikan">
-                        <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan" style="width:24px;height:24px;">
-                    </a>
-                </td>
-            </tr>
-        `;
+                    <tr>
+                        <td>#${item.id ?? '-'}</td>
+                        <td>${item.deskripsi ? (item.deskripsi.length > 30 ? item.deskripsi.substring(0, 30) + '...' : item.deskripsi) : '-'}</td>
+                        <td>${priorityBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td>${createdAt}</td>
+                        <td>
+                            <a href="${item.id ? '/form/repair/' + item.id : '#'}" class="text-primary" title="Perbaikan">
+                                <img src="{{ asset('img/icon/build.png') }}" alt="Perbaikan" style="width:24px;height:24px;">
+                            </a>
+                        </td>
+                    </tr>
+                `;
 
                     tbody.append(row);
                 });
             }
-
-            $(document).on('click', '.btn-delete', function() {
-                if (confirm('Are you sure you want to delete this inspection?')) {
-                    const id = $(this).data('id');
-                    $.ajax({
-                        url: '{{ route('form-answer.delete', ['id' => '___ID___']) }}'.replace(
-                            '___ID___', id),
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        },
-                        success: function() {
-                            loadData(1);
-                        }
-                    });
-                }
-            });
 
             // Function to update pagination links
             function updatePaginationLinks(pagination) {
@@ -728,43 +760,43 @@
                 if (pagination.last_page <= 1) return;
 
                 let html = `<nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm">`;
+                <ul class="pagination pagination-sm">`;
 
                 // Previous page link
                 if (pagination.current_page > 1) {
                     html += `<li class="page-item">
-                <a class="page-link" href="#" aria-label="Previous" data-page="${pagination.current_page - 1}">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>`;
+                    <a class="page-link" href="#" aria-label="Previous" data-page="${pagination.current_page - 1}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
                 } else {
                     html += `<li class="page-item disabled">
-                <a class="page-link" href="#" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>`;
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
                 }
 
                 // Page links
                 for (let i = 1; i <= pagination.last_page; i++) {
                     html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>`;
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>`;
                 }
 
                 // Next page link
                 if (pagination.current_page < pagination.last_page) {
                     html += `<li class="page-item">
-                <a class="page-link" href="#" aria-label="Next" data-page="${pagination.current_page + 1}">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>`;
+                    <a class="page-link" href="#" aria-label="Next" data-page="${pagination.current_page + 1}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
                 } else {
                     html += `<li class="page-item disabled">
-                <a class="page-link" href="#" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>`;
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
                 }
 
                 html += `</ul></nav>`;
@@ -776,70 +808,34 @@
                 e.preventDefault();
                 let page = $(this).data('page');
                 if (page) {
+                    currentPage = page;
                     loadData(page);
                 }
             });
 
-            // Function to re-attach event listeners after AJAX load
-            function attachEventListeners() {
-                // Image modal click handler
-                $('.photo-cell img').on('click', function() {
-                    $('#modalImage').attr('src', $(this).attr('src'));
-                    $('#modalArea').text($(this).data('area'));
-                    $('#modalDescription').text($(this).data('description'));
+            // Handle delete button clicks
+            $(document).on('click', '.btn-delete', function() {
+                if (confirm('Are you sure you want to delete this inspection?')) {
+                    const id = $(this).data('id');
+                    $.ajax({
+                        url: '{{ route('form-answer.delete', ['id' => '___ID___']) }}'.replace(
+                            '___ID___', id),
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function() {
+                            loadData(currentPage);
+                        }
+                    });
+                }
+            });
 
-                    const risk = $(this).data('risk').toLowerCase();
-                    let riskBadge = '';
-
-                    if (risk === 'critical') {
-                        riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
-                    style="background:rgba(220,53,69,0.15);color:#dc3545;font-size:1.05rem;">
-                    <i class="fas fa-skull-crossbones me-1"></i> Critical
-                </span>`;
-                    } else if (risk === 'high') {
-                        riskBadge = `<span class="badge-risk risk-high d-inline-flex align-items-center px-3 py-2"
-                    style="font-size:1.05rem;">
-                    <i class="fas fa-exclamation-triangle me-1"></i> High
-                </span>`;
-                    } else if (risk === 'medium') {
-                        riskBadge = `<span class="badge-risk risk-medium d-inline-flex align-items-center px-3 py-2"
-                    style="font-size:1.05rem;">
-                    <i class="fas fa-exclamation-circle me-1"></i> Medium
-                </span>`;
-                    } else {
-                        riskBadge = `<span class="badge-risk risk-low d-inline-flex align-items-center px-3 py-2"
-                    style="font-size:1.05rem;">
-                    <i class="fas fa-check-circle me-1"></i> Low
-                </span>`;
-                    }
-
-                    $('#modalRisk').html(riskBadge);
-                    $('#modalPic').text($(this).data('pic'));
-                });
-
-                // Edit modal click handler
-                $('.btn-edit-inspection').on('click', function() {
-                    $('#editModalImage').attr('src', $(this).data('img'));
-                    $('#editModalArea').val($(this).data('area') || '');
-                    $('#editModalDetailArea').val($(this).data('detail_area') || '');
-                    $('#editModalPotensiBahaya').val($(this).data('potensi_bahaya') || '');
-                    $('#editModalDescription').val($(this).data('deskripsi') || '');
-                    $('#editModalMasukan').val($(this).data('masukan') || '');
-                    $('#editModalRisk').val(($(this).data('risk') || '').toLowerCase());
-                    $('#editModalPic').val($(this).data('pic') || '');
-                    $('#editModalId').val($(this).data('id') || '');
-                });
-            }
+            // Clean up interval when page is unloaded
+            $(window).on('beforeunload', function() {
+                clearInterval(refreshInterval);
+            });
         });
-
-        // Initialize Charts
-        window.onload = function() {
-            const priorityCtx = document.getElementById('priorityChart').getContext('2d');
-            new Chart(priorityCtx, priorityConfig);
-
-            const donutCtx = document.getElementById('donutChart').getContext('2d');
-            new Chart(donutCtx, donutConfig);
-        };
     </script>
 </body>
 

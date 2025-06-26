@@ -283,9 +283,9 @@
 
                     <!-- Deskripsi Perbaikan -->
                     <div class="mb-4">
-                        <label for="findingDescription" class="form-label">DESKRIPSI TEMUAN</label>
+                        <label for="findingDescription" class="form-label">DESKRIPSI PERBAIKAN</label>
                         <textarea class="form-control" id="findingDescription" name="deskripsi_repair" rows="3" placeholder="Deskripsi lengkap temuan..." required></textarea>
-                        <div class="form-text">Jelaskan secara rinci apa yang ditemukan</div>
+                        <div class="form-text">Jelaskan secara rinci apa yang diperbaiki</div>
                     </div>
 
                     <!-- Submit Button -->
