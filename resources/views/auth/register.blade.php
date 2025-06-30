@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login | Autoplastik Indonesia</title>
+    <title>Register | Autoplastik Indonesia</title>
     <!-- Bootstrap 5 CSS -->
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -24,19 +24,16 @@
 
         .overlay {
             position: fixed;
-            /* Ganti dari absolute ke fixed */
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background: rgba(207, 205, 205, 0.8);
             z-index: -1;
-            /* Pastikan overlay di belakang konten */
         }
 
         body {
             position: relative;
-            /* Tambahkan ini */
             font-family: 'Poppins', sans-serif;
             color: var(--text-color);
             min-height: 100vh;
@@ -46,23 +43,21 @@
             background-size: cover;
             background-position: center;
             padding: 20px;
-            /* Tambahkan padding untuk jarak dari tepi layar */
         }
 
         .container {
             width: 100%;
             max-width: 100%;
-            /* Pastikan container tidak melebihi lebar layar */
         }
 
-        .login-card {
+        .register-card {
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .login-card:hover {
+        .register-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
@@ -84,13 +79,13 @@
             padding: 5px;
         }
 
-        .login-title {
+        .register-title {
             font-size: 1.8rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
 
-        .login-subtitle {
+        .register-subtitle {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.8);
             margin-bottom: 0;
@@ -140,17 +135,6 @@
             border-color: var(--primary-hover);
         }
 
-        .forgot-password {
-            color: var(--light-text);
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-password:hover {
-            color: var(--primary-color);
-        }
-
         .divider {
             display: flex;
             align-items: center;
@@ -179,7 +163,7 @@
                 padding: 1.5rem;
             }
 
-            .login-title {
+            .register-title {
                 font-size: 1.5rem;
             }
         }
@@ -191,11 +175,11 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6 col-xl-5">
-                <div class="card login-card">
+                <div class="card register-card">
                     <div class="card-header">
                         <img src="{{ asset('img/company-logo.png') }}" alt="Company Logo" class="company-logo">
-                        <h1 class="login-title">Welcome Back</h1>
-                        <p class="login-subtitle">Please login to access your account</p>
+                        <h1 class="register-title">Create Account</h1>
+                        <p class="register-subtitle">Register to access the system</p>
                     </div>
                     <div class="card-body p-4 p-md-5">
                         @if ($errors->any())
@@ -208,14 +192,29 @@
                         </div>
                         @endif
 
-                        <form method="POST" action="{{ route('login.post') }}">
+                        @if(session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('register.post') }}">
                             @csrf
-                            <div class="mb-4">
-                                <label for="npk" class="form-label">Employee ID</label>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="fas fa-user"></i></span>
+                                    <input type="text" name="name" id="name" class="form-control ps-3" required
+                                        placeholder="Enter your full name" value="{{ old('name') }}">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="npk" class="form-label">Employee ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-id-card"></i></span>
                                     <input type="text" name="npk" id="npk" class="form-control ps-3" required
-                                        placeholder="Enter your employee ID">
+                                        placeholder="Enter your employee ID" value="{{ old('npk') }}">
                                 </div>
                             </div>
 
@@ -224,20 +223,26 @@
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="fas fa-lock"></i></span>
                                     <input type="password" name="password" id="password" class="form-control ps-3" required
-                                        placeholder="Enter your password">
-                                </div>
-                                <div class="d-flex justify-content-end mt-2">
-                                    <a href="#" class="forgot-password">Forgot Password?</a>
+                                        placeholder="Create a password">
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100 mt-3">Sign In</button>
+                            <div class="mb-4">
+                                <label for="password_confirmation" class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="fas fa-lock"></i></span>
+                                    <input type="password" name="password_confirmation" id="password_confirmation" 
+                                        class="form-control ps-3" required placeholder="Confirm your password">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Register</button>
                         </form>
 
                         <div class="divider">or</div>
 
                         <div class="text-center">
-                            <p class="mb-3">Don't have an account? <a href="{{ route('register') }}" class="text-decoration-none">Sign up</a></p>
+                            <p class="mb-0">Already have an account? <a href="{{ route('login') }}" class="text-decoration-none">Sign in</a></p>
                         </div>
                     </div>
                 </div>
